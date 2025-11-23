@@ -96,14 +96,11 @@ Runs on any Windows PC — no Python needed.
 
 ## 🚀 Installation (For Users)
 
-### 1. Download the installer  
-`ASTM_E562_Setup.exe`
+### 1. Download the file  
+`astm_e562_app.exe`
 
-### 2. Run the setup  
-Choose installation folder (default: Program Files)
-
-### 3. Launch the Application  
-Start Menu → **ASTM E562 App**
+### 2. Launch the Application  
+**astm_e562_app.exe**
 
 ---
 ## 📁 Project Structure
