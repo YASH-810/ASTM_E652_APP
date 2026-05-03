@@ -1,4 +1,3 @@
-
 # 🧪 ASTM E-562 Manual Point Counting Application  
 ### **Python + OpenCV + CustomTkinter Desktop App (with .EXE installer)**
 
@@ -8,11 +7,22 @@ It includes:
 - Automatic grid overlay  
 - Non-border interior intersection points  
 - Manual phase classification (Inside = 1.0, Boundary = 0.5)  
-- Real-time percentage calculation  
+- Real-time percentage calculation
+- Intuitive progress tracking and clear image identification
 - CSV / Excel export  
 - A4 image export (JPG/PDF)  
 - Windows EXE creation  
 - Full Installer (Setup.exe)
+
+---
+
+## 📸 Screenshots
+
+![Main Interface](docs/main_interface.png)  
+*Main Application Window with Image Preview and Thumbnails*
+
+![Point Selection](docs/point_selection.png)  
+*Interactive Point Selection Grid*
 
 ---
 
@@ -51,8 +61,11 @@ Produces perfect NxN interior points.
 
 ---
 
-### ✅ 5. Manual Classification  
-Click any point → choose:
+### ✅ 5. Automatic & Manual Classification  
+You can perform point counting in two modes:
+
+- **Auto Mode**: Select "Auto (Dark Phase)" or "Auto (Light Phase)". The application will automatically calculate the phase using Otsu's thresholding.
+- **Manual Mode / Correction**: In any mode, click on an intersection point on the grid to classify or correct it:
 
 | Type      | Value | Color   |
 |-----------|--------|----------|
@@ -62,18 +75,25 @@ Click any point → choose:
 
 ---
 
-### ✅ 6. Percentage Calculation  
+### ✅ 6. Progress Tracking & Image Identification
+- **Visual Status**: Image thumbnails display dynamic borders (🔴 Red for pending, 🟢 Green for processed) so you always know what's left.
+- **Progress Label**: A tracker shows the overall processed ratio (e.g. `Processed: 4 / 30`).
+- **Image Names**: The active image file name is prominently displayed under the preview window, in the selection popup title, and upon calculating the results to ensure clear identification.
+
+---
+
+### ✅ 7. Percentage Calculation  
 Matches ASTM E-562:
 
 ```
 Volume % = ( Σ(point values) / Total Points ) × 100
 ```
 
-Displayed and saved in results table.
+Displayed and saved in results table. The table rows are color-coded based on the calculation status.
 
 ---
 
-### ✅ 7. Export Options  
+### ✅ 8. Export Options  
 You can export:
 
 - **A4 JPG pages** (multiple images per page)  
@@ -83,7 +103,7 @@ You can export:
 
 ---
 
-### ✅ 8. Full Windows App (.EXE)  
+### ✅ 9. Full Windows App (.EXE)  
 Built using:
 
 ```
@@ -128,5 +148,4 @@ ASTM-E562-App/
 
 ---
 
-## 👨‍💻 Author
-Yash Londhe
+
