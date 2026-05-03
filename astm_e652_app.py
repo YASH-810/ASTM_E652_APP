@@ -21,6 +21,7 @@ processed_images = []     # PIL images with grid
 point_positions_list = [] # list[list[(x,y)]]
 point_values_list = []    # list[list[float]]
 tree_items = []           # one tree item id per image (or None if deleted)
+thumb_buttons = []        # list of thumbnail buttons
 
 thumb_photo_refs = []     # keep references for thumbnails
 
@@ -223,9 +224,15 @@ def calculate_percentage_for_image(img_index):
         if item_id is not None:
             outputs_tree.set(item_id, "percent", f"{percent:.2f}")
 
+    update_progress_ui()
+
+    img_name = ""
+    if img_index < len(image_paths):
+        img_name = os.path.basename(image_paths[img_index])
+
     messagebox.showinfo(
         "ASTM E562",
-        f"Image #{img_index + 1}\n"
+        f"Image: {img_name}\n"
         f"Counting points: {total_points}\n"
         f"Weighted sum: {s:.2f}\n"
         f"Volume fraction: {percent:.2f} %",
@@ -292,7 +299,12 @@ def open_point_selection(img_index):
     values = point_values_list[img_index]
 
     win = tk.Toplevel(root)
-    win.title(f"Point selection – Image {img_index + 1}")
+    
+    img_name = ""
+    if img_index < len(image_paths):
+        img_name = os.path.basename(image_paths[img_index])
+        
+    win.title(f"Point selection – {img_name}")
 
     canvas = tk.Canvas(win, width=pil_img.width, height=pil_img.height)
     canvas.pack()
@@ -328,10 +340,40 @@ def open_point_selection(img_index):
 
 
 # ---------------- MAIN UI LOGIC ----------------
+def update_progress_ui():
+    total = len(processed_images)
+    if total == 0:
+        progress_label.configure(text="Processed: 0 / 0")
+        return
+
+    done_count = 0
+    for i in range(total):
+        is_done = False
+        if i < len(tree_items) and tree_items[i] is not None:
+            val = outputs_tree.item(tree_items[i], "values")
+            if len(val) > 1 and val[1] != "":
+                is_done = True
+                done_count += 1
+                
+        if i < len(thumb_buttons):
+            if is_done:
+                thumb_buttons[i].configure(border_width=2, border_color="#4caf50") # Green
+            else:
+                thumb_buttons[i].configure(border_width=2, border_color="#f44336") # Red
+                
+        if i < len(tree_items) and tree_items[i] is not None:
+            if is_done:
+                outputs_tree.item(tree_items[i], tags=("done",))
+            else:
+                outputs_tree.item(tree_items[i], tags=("not_done",))
+                
+    progress_label.configure(text=f"Processed: {done_count} / {total}")
+
+
 def refresh_main_preview(index=0):
     """Show selected image in big preview on left."""
     if not processed_images:
-        main_image_label.configure(image=None, text="No image loaded")
+        main_image_label.configure(image=None, text="No image loaded", compound="center")
         main_image_label.image = None
         main_image_label.current_index = None
         return
@@ -346,16 +388,23 @@ def refresh_main_preview(index=0):
     resized = pil_img.resize(new_size, Image.LANCZOS)
 
     photo = ImageTk.PhotoImage(resized)
-    main_image_label.configure(image=photo, text="")
+    
+    img_name = ""
+    if index < len(image_paths):
+        img_name = os.path.basename(image_paths[index])
+
+    main_image_label.configure(image=photo, text=img_name, compound="bottom", font=("", 14, "bold"))
     main_image_label.image = photo
     main_image_label.current_index = index
 
 
 def build_thumbnails():
     """Thumbnail bar from processed_images."""
+    global thumb_buttons
     for widget in thumb_inner_frame.winfo_children():
         widget.destroy()
     thumb_photo_refs.clear()
+    thumb_buttons.clear()
 
     for i, img in enumerate(processed_images):
         thumb = img.resize((80, 80), Image.LANCZOS)
@@ -370,12 +419,16 @@ def build_thumbnails():
             height=80,
             fg_color="transparent",
             hover_color="#333333",
+            border_width=2,
+            border_color="#f44336",
             command=lambda idx=i: on_thumbnail_click(idx),
         )
         btn.grid(row=0, column=i, padx=4, pady=4)
+        thumb_buttons.append(btn)
 
     thumb_canvas.update_idletasks()
     thumb_canvas.configure(scrollregion=thumb_canvas.bbox("all"))
+    update_progress_ui()
 
 
 def on_thumbnail_click(idx):
@@ -559,6 +612,8 @@ def delete_selected_row():
         if main_image_label.current_index == idx:
             refresh_main_preview(idx)
 
+    update_progress_ui()
+
 
 
 # ---------------- BUILD UI ----------------
@@ -671,10 +726,19 @@ outputs_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
 outputs_frame.grid_rowconfigure(1, weight=1)
 outputs_frame.grid_columnconfigure(0, weight=1)
 
-ctk.CTkLabel(outputs_frame, text="Outputs").grid(row=0, column=0, pady=5)
+outputs_header_frame = ctk.CTkFrame(outputs_frame, fg_color="transparent")
+outputs_header_frame.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
+outputs_header_frame.grid_columnconfigure(0, weight=1)
+outputs_header_frame.grid_columnconfigure(1, weight=1)
+
+ctk.CTkLabel(outputs_header_frame, text="Outputs", font=("", 14, "bold")).grid(row=0, column=0, sticky="w")
+progress_label = ctk.CTkLabel(outputs_header_frame, text="Processed: 0 / 0", text_color="#aaaaaa")
+progress_label.grid(row=0, column=1, sticky="e")
 
 columns = ("image", "percent")
 outputs_tree = ttk.Treeview(outputs_frame, columns=columns, show="headings", height=8)
+outputs_tree.tag_configure("done", foreground="#4caf50")
+outputs_tree.tag_configure("not_done", foreground="#f44336")
 outputs_tree.heading("image", text="Image")
 outputs_tree.heading("percent", text="Percentage (%)")
 outputs_tree.column("image", width=160, anchor="w")
