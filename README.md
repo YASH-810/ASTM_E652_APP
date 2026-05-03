@@ -125,19 +125,6 @@ Download the latest executable from the releases page:
 Double-click **astm_e562_app.exe** to run it. No Python installation required!
 
 ---
-## 📁 Project Structure
-
-```
-ASTM-E562-App/
-│
-├── astm_e652_app.py
-├── astm_e652_app.exe            
-├── README.md
-├── sample_image                              
-└── grid_settings.json     
-```
-
----
 
 ## 🧩 Technologies Used
 - Python  
