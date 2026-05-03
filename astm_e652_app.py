@@ -475,10 +475,41 @@ def process_images():
 
         processed_images.append(pil_img)
         point_positions_list.append(pts)
-        point_values_list.append([0.0] * len(pts))
 
         fname = os.path.basename(path)
-        item_id = outputs_tree.insert("", "end", values=(fname, ""))
+        mode = calc_mode_var.get()
+        
+        if mode == "Manual":
+            initial_values = [0.0] * len(pts)
+            item_id = outputs_tree.insert("", "end", values=(fname, ""))
+        else:
+            gray = cv2.cvtColor(img_square, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (5, 5), 0)
+            _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            
+            # Create a boundary mask
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+            boundary_mask = cv2.morphologyEx(thresh, cv2.MORPH_GRADIENT, kernel)
+            
+            initial_values = []
+            for (x, y) in pts:
+                if 0 <= y < thresh.shape[0] and 0 <= x < thresh.shape[1]:
+                    if boundary_mask[y, x] > 0:
+                        initial_values.append(0.5)
+                    else:
+                        val = thresh[y, x]
+                        if mode == "Auto (Dark Phase)":
+                            initial_values.append(1.0 if val == 0 else 0.0)
+                        else:
+                            initial_values.append(1.0 if val == 255 else 0.0)
+                else:
+                    initial_values.append(0.0)
+                    
+            s = sum(initial_values)
+            percent = (s / len(pts)) * 100.0 if len(pts) > 0 else 0.0
+            item_id = outputs_tree.insert("", "end", values=(fname, f"{percent:.2f}"))
+
+        point_values_list.append(initial_values)
         tree_items.append(item_id)
 
     if not processed_images:
@@ -492,6 +523,7 @@ def process_images():
         "rows": row_var.get(),
         "cols": col_var.get(),
         "color": color_var.get(),
+        "calc_mode": calc_mode_var.get(),
     })
 
 
@@ -703,6 +735,7 @@ ctk.CTkLabel(grid_frame, text="Grid orientation").grid(row=0, column=0, columnsp
 row_var = tk.StringVar()
 col_var = tk.StringVar()
 color_var = tk.StringVar()
+calc_mode_var = tk.StringVar(value="Manual")
 inter_label_var = tk.StringVar(value="Counting points per image: -")
 
 ctk.CTkLabel(grid_frame, text="No. of cells (H, V):").grid(row=1, column=0, sticky="w", padx=5, pady=2)
@@ -714,11 +747,15 @@ col_entry.grid(row=1, column=2, padx=5)
 inter_label = ctk.CTkLabel(grid_frame, textvariable=inter_label_var)
 inter_label.grid(row=2, column=0, columnspan=3, sticky="w", padx=5, pady=2)
 
+ctk.CTkLabel(grid_frame, text="Detection Mode:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
+mode_menu = ctk.CTkOptionMenu(grid_frame, variable=calc_mode_var, values=["Manual", "Auto (Dark Phase)", "Auto (Light Phase)"])
+mode_menu.grid(row=3, column=1, columnspan=2, padx=5, sticky="we")
+
 pick_color_btn = ctk.CTkButton(grid_frame, text="Grid color", width=80, command=pick_color)
-pick_color_btn.grid(row=3, column=0, padx=5, pady=5, sticky="w")
+pick_color_btn.grid(row=4, column=0, padx=5, pady=5, sticky="w")
 
 apply_btn = ctk.CTkButton(grid_frame, text="Apply grid", command=process_images)
-apply_btn.grid(row=3, column=2, padx=5, pady=5, sticky="e")
+apply_btn.grid(row=4, column=2, padx=5, pady=5, sticky="e")
 
 # --- Outputs table section ---
 outputs_frame = ctk.CTkFrame(right_frame)
@@ -784,6 +821,7 @@ settings = load_settings()
 row_var.set(settings.get("rows", "4"))
 col_var.set(settings.get("cols", "4"))
 color_var.set(settings.get("color", ""))
+calc_mode_var.set(settings.get("calc_mode", "Manual"))
 
 refresh_main_preview()
 
