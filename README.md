@@ -1,4 +1,5 @@
 # 🧪 ASTM E-562 Manual Point Counting Application  
+[![Download Latest Release](https://img.shields.io/github/v/release/YASH-810/ASTM_E652_APP?label=Download&style=for-the-badge)](https://github.com/YASH-810/ASTM_E652_APP/releases/latest)
 ### **Python + OpenCV + CustomTkinter Desktop App (with .EXE installer)**
 
 This project is a complete desktop application for performing **ASTM E-562 point counting** on microstructure images.  
@@ -107,7 +108,7 @@ You can export:
 Built using:
 
 ```
-pyinstaller --onefile --windowed astm_app.py
+pyinstaller --onefile --windowed --name "astm_e562_app" astm_e652_app.py
 ```
 
 Runs on any Windows PC — no Python needed.
@@ -116,11 +117,12 @@ Runs on any Windows PC — no Python needed.
 
 ## 🚀 Installation (For Users)
 
-### 1. Download the file  
-`astm_e562_app.exe`
+### 1. Download the App
+Download the latest executable from the releases page:
+👉 [**Download astm_e562_app.exe**](https://github.com/YASH-810/ASTM_E652_APP/releases/latest)
 
 ### 2. Launch the Application  
-**astm_e562_app.exe**
+Double-click **astm_e562_app.exe** to run it. No Python installation required!
 
 ---
 ## 📁 Project Structure
