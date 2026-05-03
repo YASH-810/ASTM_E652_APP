@@ -1,4 +1,7 @@
 astm_e562_app.exe
 build
-dis
+dist
 __pycache__
+grid_settings.json
+
+
